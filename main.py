@@ -11,11 +11,11 @@ window.geometry("400x300+400+400")
 window.resizable(width=False, height=False)
 
 splice_selected_folder_path = ""  # 拼接源文件夹路径
-generated_collages = 0  # 已生成的大图数量
+splice_generated_collages = 0  # 已生成的大图数量
 split_selected_folder_path = ""  # 拆分源文件夹路径
 
 
-def select_folder():
+def splice_select_folder():
     global splice_selected_folder_path
     # 打开文件夹选择框
     folder_path = filedialog.askdirectory()
@@ -25,8 +25,18 @@ def select_folder():
         splice_input_folder_path.set(splice_selected_folder_path)
 
 
-def generate_collage():
-    global generated_collages
+def split_select_folder():
+    global split_selected_folder_path
+    # 打开文件夹选择框
+    folder_path = filedialog.askdirectory()
+
+    if folder_path:
+        split_selected_folder_path = folder_path
+        split_input_folder_path.set(split_selected_folder_path)
+
+
+def splice_images_in_folder():
+    global splice_generated_collages
     if splice_selected_folder_path:
         # 获取文件夹内所有文件列表
         file_list = os.listdir(splice_selected_folder_path)
@@ -71,13 +81,85 @@ def generate_collage():
                     collage.paste(img, (j % collage_width * thumb_width, j // collage_width * thumb_height))
 
             collage.save(os.path.join(output_folder, f'collage_{i + 1}.png'), quality=100, optimize=False)
-            generated_collages += 1
+            splice_generated_collages += 1
 
-            progress_bar['value'] = generated_collages
+            progress_bar['value'] = splice_generated_collages
             progress.update()
 
         progress.destroy()
         messagebox.showinfo("完成", "拼接图片生成完成！")
+
+
+def split_images_in_folder():
+    if split_selected_folder_path:
+        # 获取输入目录中的所有图片文件
+        image_files = [f for f in os.listdir(split_selected_folder_path) if
+                       os.path.isfile(os.path.join(split_selected_folder_path, f))]
+        image_files.sort()  # 按文件名排序，确保顺序
+
+        # 初始化计数器
+        count = 1
+
+        # 设置分割的行数和列数
+        num_cols = 3
+        num_rows = 2
+
+        # 输出文件夹路径（保存拆分后的小图）
+        output_folder = "output2_folder"
+        os.makedirs(output_folder, exist_ok=True)
+
+        # 确定生成小图的数量
+        num_sum = num_cols * num_rows * len(image_files)
+
+        # 进度条
+        progress = tk.Tk()
+        progress.title("分割进度")
+        progress.geometry("300x100+450+450")
+
+        frame_progress = tk.Frame(progress)
+        frame_progress.pack(pady=10)
+
+        progress_bar = ttk.Progressbar(frame_progress, length=250, mode='determinate', maximum=num_sum)
+        progress_bar.pack()
+
+        # 逐个处理每个图片文件
+        for image_file in image_files:
+            # 拼接图片文件路径
+            image_path = os.path.join(split_selected_folder_path, image_file)
+
+            # 打开大图片
+            image = Image.open(image_path)
+
+            # 获取大图片的尺寸
+            img_width, img_height = image.size
+
+            # 确定每张小图片的宽度和高度
+            tile_width = img_width // num_cols
+            tile_height = img_height // num_rows
+
+            # 分割并保存小图片
+            for y in range(num_rows):
+                for x in range(num_cols):
+                    left = x * tile_width
+                    upper = y * tile_height
+                    right = left + tile_width
+                    lower = upper + tile_height
+
+                    # 从大图片中裁剪出小图片
+                    tile = image.crop((left, upper, right, lower))
+
+                    # 保存小图片为PNG格式，并添加排序号
+                    tile_path = os.path.join(output_folder, f'{count}.png')
+                    tile.save(tile_path, format='PNG')
+
+                    # 增加计数器
+                    count += 1
+
+                    progress_bar['value'] = count
+                    progress.update()
+
+        progress.destroy()
+        messagebox.showinfo("完成", "分割图片完成！")
 
 
 def set_notebook_style():
@@ -87,12 +169,11 @@ def set_notebook_style():
         "TNotebook.Tab": {
             "configure": {
                 "padding": [10, 5],
-                "font": ('Helvetica', 12, 'bold')
+                "font": ('Helvetica', 10)
             },
             "map": {
                 "background": [("selected", "lightblue"), ("!selected", "white")],
-                "foreground": [("selected", "black"), ("!selected", "black")],
-                "focuscolor": [("selected", "")]
+                "font": [("selected", "Helvetica 10 bold")],
             },
         },
         "TFrame": {
@@ -111,36 +192,36 @@ def create_tab(nb, text, func):
 def tab1_func(tab):
     # 源文件夹路径
     splice_input_folder_path.set("请选择文件夹...")
-    entry_folder_path = tk.Label(tab, textvariable=splice_input_folder_path, font=('Helvetica Neue', 10), bg="#FFFFFF")
-    entry_folder_path.pack(pady=20)
+    splice_entry_folder_path = tk.Label(tab, textvariable=splice_input_folder_path, font=('Helvetica Neue', 10),
+                                        bg="#FFFFFF")
+    splice_entry_folder_path.pack(pady=20)
 
     # 选择文件夹
-    btn_select_folder = tk.Button(tab, text="选择文件夹", command=select_folder, padx=20, pady=5,
-                                  font=('Helvetica Neue', 10))
-    btn_select_folder.pack(pady=20)
+    splice_btn_select_folder = tk.Button(tab, text="选择文件夹", command=splice_select_folder, padx=20, pady=5,
+                                         font=('Helvetica Neue', 10))
+    splice_btn_select_folder.pack(pady=20)
 
     # 生成拼接图片
-    btn_generate_collage = tk.Button(tab, text="生成拼接图片", command=generate_collage, padx=20, pady=5,
-                                     font=('Helvetica Neue', 10))
-    btn_generate_collage.pack(pady=20)
+    splice_btn_generate_collage = tk.Button(tab, text="生成拼接图片", command=splice_images_in_folder, padx=20, pady=5,
+                                            font=('Helvetica Neue', 10))
+    splice_btn_generate_collage.pack(pady=20)
 
 
 def tab2_func(tab):
-    pass
-    # 源文件夹路径
-    # folder_path_var.set("请选择文件夹...")
-    # entry_folder_path = tk.Label(tab, textvariable=folder_path_var, font=('Helvetica Neue', 10), bg="#FFFFFF")
-    # entry_folder_path.pack(pady=20)
-    #
-    # # 选择文件夹
-    # btn_select_folder = tk.Button(tab, text="选择文件夹", command=select_folder, padx=20, pady=5,
-    #                               font=('Helvetica Neue', 10))
-    # btn_select_folder.pack(pady=20)
-    #
-    # # 生成拼接图片
-    # btn_generate_collage = tk.Button(tab, text="生成拼接图片", command=generate_collage, padx=20, pady=5,
-    #                                  font=('Helvetica Neue', 10))
-    # btn_generate_collage.pack(pady=20)
+    split_input_folder_path.set("请选择文件夹...")
+    split_entry_folder_path = tk.Label(tab, textvariable=split_input_folder_path, font=('Helvetica Neue', 10),
+                                       bg="#FFFFFF")
+    split_entry_folder_path.pack(pady=20)
+
+    # 选择文件夹
+    split_btn_select_folder = tk.Button(tab, text="选择文件夹", command=split_select_folder, padx=20, pady=5,
+                                        font=('Helvetica Neue', 10))
+    split_btn_select_folder.pack(pady=20)
+
+    # 拆分所有图片
+    split_btn_generate_collage = tk.Button(tab, text="拆分所有图片", command=split_images_in_folder, padx=20, pady=5,
+                                           font=('Helvetica Neue', 10))
+    split_btn_generate_collage.pack(pady=20)
 
 
 set_notebook_style()
