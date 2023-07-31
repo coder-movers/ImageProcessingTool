@@ -1,0 +1,51 @@
+# 忽略字节编译文件
+*.pyc
+
+# 忽略一些环境生成的文件
+.Python
+build/
+develop-eggs/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# 忽略项目生成的文件
+__pycache__/
+*.py[cod]
+*$py.class
+
+# 常见的编辑器文件
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# 日志文件
+*.log
+
+# 临时文件
+*.tmp
+*.tmp.*
+
+# 数据库文件
+*.db
+*.rdb
+
+# 系统生成的文件
+.DS_Store
+ehthumbs.db
+Icon?
+Thumbs.db
