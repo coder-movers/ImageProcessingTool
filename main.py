@@ -11,7 +11,6 @@ window.geometry("400x300+400+400")
 window.resizable(width=False, height=False)
 
 splice_selected_folder_path = ""  # 拼接源文件夹路径
-splice_generated_collages = 0  # 已生成的大图数量
 split_selected_folder_path = ""  # 拆分源文件夹路径
 
 
@@ -36,7 +35,6 @@ def split_select_folder():
 
 
 def splice_images_in_folder():
-    global splice_generated_collages
     if splice_selected_folder_path:
         # 获取文件夹内所有文件列表
         file_list = os.listdir(splice_selected_folder_path)
@@ -47,6 +45,9 @@ def splice_images_in_folder():
 
         output_folder = "output1_folder"
         os.makedirs(output_folder, exist_ok=True)
+
+        # 计数器
+        count = 0
 
         # 确定拼接图片尺寸
         num_images = len(image_files)
@@ -81,9 +82,9 @@ def splice_images_in_folder():
                     collage.paste(img, (j % collage_width * thumb_width, j // collage_width * thumb_height))
 
             collage.save(os.path.join(output_folder, f'collage_{i + 1}.png'), quality=100, optimize=False)
-            splice_generated_collages += 1
+            count += 1
 
-            progress_bar['value'] = splice_generated_collages
+            progress_bar['value'] = count
             progress.update()
 
         progress.destroy()
