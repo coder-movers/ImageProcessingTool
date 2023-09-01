@@ -18,6 +18,7 @@ wheels/
 .installed.cfg
 *.egg
 MANIFEST
+/Pipfile.lock
 
 # 忽略项目生成的文件
 __pycache__/
